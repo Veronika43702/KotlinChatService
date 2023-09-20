@@ -67,13 +67,11 @@ class ChatService {
         if (chats.find { it.idUser1 == idUser || it.idUser2 == idUser } == null) {
             listOfLastMessages.add("Нет сообщений")
         }
-        // поиск в чатах пользователя среди User1/User2 с наличием сообщений на случай их удаления
+        // поиск в чатах пользователя среди User1/User2
         for (chat in chats) {
-            if ((chat.idUser1 == idUser || chat.idUser2 == idUser) && chat.messages.isNotEmpty()) {
+            if (chat.idUser1 == idUser || chat.idUser2 == idUser) {
                 // добавление текста последнего сообщения в список
                 listOfLastMessages.add(chat.messages[chat.messages.lastIndex].text)
-            } else if ((chat.idUser1 == idUser || chat.idUser2 == idUser) && chat.messages.isEmpty()) {
-                listOfLastMessages.add("Нет сообщений")
             }
         }
         return listOfLastMessages
@@ -97,83 +95,83 @@ class ChatService {
         } else {
             val allMessagesChats: MutableList<Chat.Message> = chats[index].messages
 
-                val firstIndex = allMessagesChats.indexOfFirst { it.id == idLastMessage }
-                // если сообщение с индексом idLastMessage сотсутствует
-                if (firstIndex == -1) {
-                    throw IndexOfMessageOutOfLimit(idLastMessage)
-                }
-                // если диапазон указанных сообщений (количество) больше существующих сообщений
-                if ((firstIndex + quantity) > (allMessagesChats.size)) {
-                    throw NumberOfMessageOutOfLimit(quantity, allMessagesChats.size - firstIndex)
-                }
-                // извлечение необходиммых сообщений
-                messagesOfChat = allMessagesChats.subList(firstIndex, firstIndex + quantity)
-                // присвоение пометки "прочитано" сообщениям в диапазоне
-                for (message in chats[index].messages) {
-                    for (messageOfChat in messagesOfChat) {
-                        if (message == messageOfChat && chats[index].idUser2 == idUser) {
-                            message.isReadByUser2 = true
-                            messageOfChat.isReadByUser2 = true
-                        } else if (message == messageOfChat && chats[index].idUser1 == idUser) {
-                            message.isReadByUser1 = true
-                            messageOfChat.isReadByUser1 = true
-                        }
+            val firstIndex = allMessagesChats.indexOfFirst { it.id == idLastMessage }
+            // если сообщение с индексом idLastMessage сотсутствует
+            if (firstIndex == -1) {
+                throw IndexOfMessageOutOfLimit(idLastMessage)
+            }
+            // если диапазон указанных сообщений (количество) больше существующих сообщений
+            if ((firstIndex + quantity) > (allMessagesChats.size)) {
+                throw NumberOfMessageOutOfLimit(quantity, allMessagesChats.size - firstIndex)
+            }
+            // извлечение необходиммых сообщений
+            messagesOfChat = allMessagesChats.subList(firstIndex, firstIndex + quantity)
+            // присвоение пометки "прочитано" сообщениям в диапазоне
+            for (message in chats[index].messages) {
+                for (messageOfChat in messagesOfChat) {
+                    if (message == messageOfChat && chats[index].idUser2 == idUser) {
+                        message.isReadByUser2 = true
+                        messageOfChat.isReadByUser2 = true
+                    } else if (message == messageOfChat && chats[index].idUser1 == idUser) {
+                        message.isReadByUser1 = true
+                        messageOfChat.isReadByUser1 = true
                     }
                 }
-                // присвоение пометки "прочитано", если после диапазона нет непрочитанных сообщений
-                if (chats[index].messages.find { it.isReadByUser2 == false } == null) {
-                    chats[index].isReadByUser2 = true
-                } else if (chats[index].messages.find { it.isReadByUser1 == false } == null) {
-                    chats[index].isReadByUser1 = true
-                }
             }
+            // присвоение пометки "прочитано", если после диапазона нет непрочитанных сообщений
+            if (chats[index].messages.find { it.isReadByUser2 == false } == null) {
+                chats[index].isReadByUser2 = true
+            } else if (chats[index].messages.find { it.isReadByUser1 == false } == null) {
+                chats[index].isReadByUser1 = true
+            }
+        }
         return messagesOfChat
     }
 
     // создание нового сообщения
-    fun createMessage(idChat: Int, idUserFrom: Int, idUserTo: Int, text: String) : Int {
+    fun createMessage(idChat: Int, idUserFrom: Int, idUserTo: Int, text: String): Int {
         // нахождение индекса чата в списке чатов
         val index = chats.indexOfFirst { it.id_chat == idChat }
         if (index == -1) {
             throw ChatNotFound(idChat)
         }
         chats[index].messages.add(
-                Chat.Message(
-                    id_message,
-                    idChat,
-                    idUserFrom,
-                    idUserTo,
-                    text,
-                    idUserFrom == chats[index].idUser1 ?: true,
-                    idUserFrom == chats[index].idUser2 ?: true
-                )
+            Chat.Message(
+                id_message,
+                idChat,
+                idUserFrom,
+                idUserTo,
+                text,
+                idUserFrom == chats[index].idUser1 ?: true,
+                idUserFrom == chats[index].idUser2 ?: true
             )
-            id_message += 1
+        )
+        id_message += 1
         // присваиваем пометку "прочитано" всем сообщениям отправителю (если он пишет, значит всё прочел)
-            for (message in chats[index].messages) {
-                if (idUserFrom == chats[index].idUser1) {
-                    message.isReadByUser1 = true
-                    chats[index].isReadByUser1 = true
-                    chats[index].isReadByUser2 = false
-                } else if (idUserFrom == chats[index].idUser2) {
-                    message.isReadByUser2 = true
-                    chats[index].isReadByUser2 = true
-                    chats[index].isReadByUser1 = false
-                }
+        for (message in chats[index].messages) {
+            if (idUserFrom == chats[index].idUser1) {
+                message.isReadByUser1 = true
+                chats[index].isReadByUser1 = true
+                chats[index].isReadByUser2 = false
+            } else if (idUserFrom == chats[index].idUser2) {
+                message.isReadByUser2 = true
+                chats[index].isReadByUser2 = true
+                chats[index].isReadByUser1 = false
             }
+        }
         return 1
     }
 
     // удаление чата
-    fun deleteChat(idChat: Int): Int{
-        chats.remove(chats.find { it.id_chat == idChat }?:throw ChatNotFound(idChat))
+    fun deleteChat(idChat: Int): Int {
+        chats.remove(chats.find { it.id_chat == idChat } ?: throw ChatNotFound(idChat))
         return 1
     }
 
     // удаление сообщения
-    fun deleteMessage(idChat: Int, idMessage: Int): Int{
-        val index = chats.indexOfFirst{ it.id_chat == idChat }
-        if (index == -1){
+    fun deleteMessage(idChat: Int, idMessage: Int): Int {
+        val index = chats.indexOfFirst { it.id_chat == idChat }
+        if (index == -1) {
             throw ChatNotFound(idChat)
         }
         chats[index].messages.removeIf { it.id == idMessage }
@@ -192,37 +190,31 @@ class ChatService {
 
 fun main(args: Array<String>) {
     val service = ChatService()
-
-    service.createChat(2, 1, "Hello")
-    service.createMessage(1, 2, 1, "How Are you211?")
-    service.createMessage(1, 2, 1, "How Are you212?")
-
-    service.createChat(3, 2, "Hello32")
-    service.createMessage(2, 3, 2, "How Are you231?")
-    service.createMessage(2, 3, 2, "How Are you232?")
-    service.createChat(4, 3, "Hello32")
-    service.createMessage(3, 4, 2, "How Are you42?")
 //
-    println("количество непрочитанных чатов у юзера 1: " + service.getUnreadChatsCount(1))
-    println("количество непрочитанных чатов у юзера 2: " + service.getUnreadChatsCount(2))
-    println("количество непрочитанных чатов у юзера 3: " + service.getUnreadChatsCount(3))
-    println("количество непрочитанных чатов у юзера 4: " + service.getUnreadChatsCount(4))
-    //println(service.getChats(3))
-    service.deleteChat(1)
-    println(service.getAllChats())
-    service.deleteMessage(3, 7)
-    println(service.getAllChats())
-    service.deleteMessage(3, 8)
-    println(service.getAllChats())
-    println("последние сообщения юзера 2: " + service.getLastMessagesFromChats(5))
+//    service.createChat(2, 1, "Hello")
+//    service.createMessage(1, 2, 1, "How Are you211?")
+//    service.createMessage(1, 2, 1, "How Are you212?")
+//
+//    service.createChat(3, 2, "Hello32")
+//    service.createMessage(2, 3, 2, "How Are you231?")
+//    service.createMessage(2, 3, 2, "How Are you232?")
+//    service.createChat(4, 3, "Hello32")
+//    service.createMessage(3, 4, 2, "How Are you42?")
+//
+//    println("количество непрочитанных чатов у юзера 1: " + service.getUnreadChatsCount(1))
+//    println("количество непрочитанных чатов у юзера 2: " + service.getUnreadChatsCount(2))
+//    println("количество непрочитанных чатов у юзера 3: " + service.getUnreadChatsCount(3))
+//    println("количество непрочитанных чатов у юзера 4: " + service.getUnreadChatsCount(4))
+//    //println(service.getChats(3))
+//    service.deleteChat(1)
+//    println(service.getAllChats())
+//    service.deleteMessage(3, 7)
+//    println(service.getAllChats())
+//    service.deleteMessage(3, 8)
+//    println(service.getAllChats())
+//    println("последние сообщения юзера 5: " + service.getLastMessagesFromChats(5))
+//    println("последние сообщения юзера 2: " + service.getLastMessagesFromChats(2))
     //println("диапазон сообщений чата 1: " + service.getSomeMessagesFromChats(2, 3, 7, 1))
-//    println("диапазон сообщений чата 1: " + service.getSomeMessagesFromChats(2, 1, 4, 1))
-    // println("Сообщения чата 1: " + service.getAllMessages(1))
-//    println("количество непрочитанных сообщений у юзера 1: " + service.getUnreadChatsCount(1))
-//    println("количество непрочитанных сообщений у юзера 2: " + service.getUnreadChatsCount(2))
-//    println("все чаты: " + service.getChats(1))
-//    println(service.getAllchats())
-//    println("количество непрочитанных сообщений у юзера 1: " + service.getUnreadChatsCount(1))
 //    println("Сообщения чата 1: " + service.getAllMessages(1))
 //    println("чаты юзера 1: " + service.getChats(2))
 }
