@@ -180,14 +180,14 @@ fun main() {
     val service = ChatService()
 
     service.createChat(2, 1, "Hello")
-    service.createMessage(1, 2, 1, "How Are you211?")
-    service.createMessage(1, 2, 1, "How Are you212?")
-
-    service.createChat(3, 2, "Hello32")
-    service.createMessage(2, 3, 2, "How Are you231?")
-    service.createMessage(2, 3, 2, "How Are you232?")
-    service.createChat(4, 3, "Hello43")
-    service.createMessage(3, 4, 3, "How Are you42?")
+//    service.createMessage(1, 2, 1, "How Are you211?")
+//    service.createMessage(1, 2, 1, "How Are you212?")
+//
+//    service.createChat(3, 2, "Hello32")
+//    service.createMessage(2, 3, 2, "How Are you231?")
+//    service.createMessage(2, 3, 2, "How Are you232?")
+//    service.createChat(4, 3, "Hello43")
+//    service.createMessage(3, 4, 3, "How Are you42?")
 //
 //    println("количество непрочитанных чатов у юзера 1: " + service.getUnreadChatsCount(1))
 //    println("количество непрочитанных чатов у юзера 2: " + service.getUnreadChatsCount(2))
@@ -202,7 +202,7 @@ fun main() {
 //    println(service.getAllChats())
 //    println("последние сообщения юзера 5: " + service.getLastMessagesFromChats(5))
 //    println("последние сообщения юзера 2: " + service.getLastMessagesFromChats(2))
-    println("диапазон сообщений чата 1: " + service.getSomeMessagesFromChats(4, 2, 2, 1))
+//    println("диапазон сообщений чата 1: " + service.getSomeMessagesFromChats(4, 2, 2, 1))
 //    println("Сообщения чата 1: " + service.getAllMessages(1))
 //    println("чаты юзера 1: " + service.getChats(2))
 }
