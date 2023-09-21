@@ -81,51 +81,39 @@ class ChatService {
     fun getSomeMessagesFromChats(
         idUser: Int,
         idChat: Int,
-        idLastMessage: Int,
+        firstMessage: Int,
         quantity: Int
-    ): MutableList<Chat.Message> {
-        // создание пустого списка для необходимых сообщений
-        val messagesOfChat: MutableList<Chat.Message>
+    ): List<Chat.Message> {
+        val chat = chats
+            .singleOrNull { it.id_chat == idChat && (it.idUser2 == idUser || it.idUser1 == idUser)}
+            .let { it?.messages ?: throw ChatNotFoundForUser(idChat, idUser)}
+            .asSequence()
+            .drop(firstMessage-1)
+            .take(quantity)
+            .toList()
 
-        // поиск чата по id и запоминание индекса в списке чатов
         val index = chats.indexOfFirst { it.id_chat == idChat }
-        // если чата с id не нашлось
-        if (index == -1) {
-            throw ChatNotFound(idChat)
-        } else {
-            val allMessagesChats: MutableList<Chat.Message> = chats[index].messages
-
-            val firstIndex = allMessagesChats.indexOfFirst { it.id == idLastMessage }
-            // если сообщение с индексом idLastMessage сотсутствует
-            if (firstIndex == -1) {
-                throw IndexOfMessageOutOfLimit(idLastMessage)
-            }
-            // если диапазон указанных сообщений (количество) больше существующих сообщений
-            if ((firstIndex + quantity) > (allMessagesChats.size)) {
-                throw NumberOfMessageOutOfLimit(quantity, allMessagesChats.size - firstIndex)
-            }
-            // извлечение необходиммых сообщений
-            messagesOfChat = allMessagesChats.subList(firstIndex, firstIndex + quantity)
-            // присвоение пометки "прочитано" сообщениям в диапазоне
-            for (message in chats[index].messages) {
-                for (messageOfChat in messagesOfChat) {
-                    if (message == messageOfChat && chats[index].idUser2 == idUser) {
-                        message.isReadByUser2 = true
-                        messageOfChat.isReadByUser2 = true
-                    } else if (message == messageOfChat && chats[index].idUser1 == idUser) {
-                        message.isReadByUser1 = true
-                        messageOfChat.isReadByUser1 = true
-                    }
+        //присвоение пометки "прочитано" сообщениям в диапазоне
+        for (message in chats[index].messages) {
+            for (messageOfChat in chat) {
+                if (message == messageOfChat && chats[index].idUser2 == idUser) {
+                    message.isReadByUser2 = true
+                    messageOfChat.isReadByUser2 = true
+                } else if (message == messageOfChat && chats[index].idUser1 == idUser) {
+                    message.isReadByUser1 = true
+                    messageOfChat.isReadByUser1 = true
                 }
             }
-            // присвоение пометки "прочитано", если после диапазона нет непрочитанных сообщений
-            if (chats[index].messages.find { it.isReadByUser2 == false } == null) {
-                chats[index].isReadByUser2 = true
-            } else if (chats[index].messages.find { it.isReadByUser1 == false } == null) {
-                chats[index].isReadByUser1 = true
-            }
         }
-        return messagesOfChat
+
+        // присвоение пометки "прочитано", если после диапазона нет непрочитанных сообщений
+        if (chats[index].messages.find { it.isReadByUser2 == false } == null) {
+            chats[index].isReadByUser2 = true
+        } else if (chats[index].messages.find { it.isReadByUser1 == false } == null) {
+            chats[index].isReadByUser1 = true
+        }
+
+        return chat
     }
 
     // создание нового сообщения
@@ -142,8 +130,8 @@ class ChatService {
                 idUserFrom,
                 idUserTo,
                 text,
-                idUserFrom == chats[index].idUser1 ?: true,
-                idUserFrom == chats[index].idUser2 ?: true
+                chats[index].idUser1 == idUserFrom,
+               chats[index].idUser2 == idUserFrom
             )
         )
         id_message += 1
@@ -188,18 +176,18 @@ class ChatService {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val service = ChatService()
-//
-//    service.createChat(2, 1, "Hello")
-//    service.createMessage(1, 2, 1, "How Are you211?")
-//    service.createMessage(1, 2, 1, "How Are you212?")
-//
-//    service.createChat(3, 2, "Hello32")
-//    service.createMessage(2, 3, 2, "How Are you231?")
-//    service.createMessage(2, 3, 2, "How Are you232?")
-//    service.createChat(4, 3, "Hello32")
-//    service.createMessage(3, 4, 2, "How Are you42?")
+
+    service.createChat(2, 1, "Hello")
+    service.createMessage(1, 2, 1, "How Are you211?")
+    service.createMessage(1, 2, 1, "How Are you212?")
+
+    service.createChat(3, 2, "Hello32")
+    service.createMessage(2, 3, 2, "How Are you231?")
+    service.createMessage(2, 3, 2, "How Are you232?")
+    service.createChat(4, 3, "Hello43")
+    service.createMessage(3, 4, 3, "How Are you42?")
 //
 //    println("количество непрочитанных чатов у юзера 1: " + service.getUnreadChatsCount(1))
 //    println("количество непрочитанных чатов у юзера 2: " + service.getUnreadChatsCount(2))
@@ -214,7 +202,7 @@ fun main(args: Array<String>) {
 //    println(service.getAllChats())
 //    println("последние сообщения юзера 5: " + service.getLastMessagesFromChats(5))
 //    println("последние сообщения юзера 2: " + service.getLastMessagesFromChats(2))
-    //println("диапазон сообщений чата 1: " + service.getSomeMessagesFromChats(2, 3, 7, 1))
+    println("диапазон сообщений чата 1: " + service.getSomeMessagesFromChats(4, 2, 2, 1))
 //    println("Сообщения чата 1: " + service.getAllMessages(1))
 //    println("чаты юзера 1: " + service.getChats(2))
 }
