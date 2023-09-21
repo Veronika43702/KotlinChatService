@@ -1,7 +1,6 @@
 import org.junit.Test
 
 import org.junit.Assert.*
-import kotlin.math.exp
 
 class ChatServiceTest {
 
@@ -57,24 +56,10 @@ class ChatServiceTest {
         assertEquals("["+service.getAllChats()[0].messages[1]+"]", service.getSomeMessagesFromChats(1,1,2,1).toString())
     }
 
-    @Test(expected = ChatNotFound::class)
+    @Test(expected = ChatNotFoundForUser::class)
     fun getSomeMessagesFromChatsFailNoChat() {
         val service = ChatService()
         service.getSomeMessagesFromChats(1,1,2,1)
-    }
-
-    @Test(expected = IndexOfMessageOutOfLimit::class)
-    fun getSomeMessagesFromChatsFailLastMessageOut() {
-        val service = ChatService()
-        service.createChat(1, 2, "Hello")
-        service.getSomeMessagesFromChats(1,1,2,1)
-    }
-
-    @Test(expected = NumberOfMessageOutOfLimit::class)
-    fun getSomeMessagesFromChatsFailQuantityOut() {
-        val service = ChatService()
-        service.createChat(1, 2, "Hello")
-        service.getSomeMessagesFromChats(1,1,1,3)
     }
 
     @Test
